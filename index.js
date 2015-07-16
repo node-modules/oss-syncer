@@ -56,7 +56,9 @@ function * checkAndUpload (source, target, sourceMeta) {
     debug('get %s status %s, try to update', name, err.status || 'unknown')
   }
 
-  if (targetInfo.res &&
+  if (
+    targetInfo &&
+    targetInfo.res &&
     targetInfo.res.headers &&
     targetInfo.res.headers.etag === sourceMeta.etag) {
     return debug('%s is not modified, no need to update', name)
