@@ -18,9 +18,13 @@ let syncer = require('oss-syncer')
 // see https://github.com/ali-sdk/ali-oss
 let sourceConfig = {}
 let targetConfig = {}
-
-co(syncer.sync(sourceConfig, targetConfig, prefix)).then(function (keys) {
-  conosle.error('%j sync error', keys)  
+let options = {
+  sourcePrefix: 'release/',
+  targetPrefix: 'prepub/',
+  force: false // default is true
+}
+co(syncer.sync(sourceConfig, targetConfig, options)).then(function (keys) {
+  conosle.error('%j sync error', keys)
 }).catch(onerror)
 ```
 

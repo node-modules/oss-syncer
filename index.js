@@ -5,23 +5,27 @@ const oss = require('ali-oss')
 
 exports.sync = sync
 
-function * sync (source, target, prefix) {
+function * sync (source, target, options) {
   source = oss(source)
   target = oss(target)
-  prefix = prefix || ''
-  let sourceMetas
 
+  options = options || {}
+  options.sourcePrefix = options.sourcePrefix || ''
+  options.targetPrefix = options.targetPrefix || options.sourcePrefix
+  options.force = options.force !== false
+
+  let sourceMetas
   try {
-    sourceMetas = yield getAllObjects(source, prefix)
+    sourceMetas = yield getAllObjects(source, options.sourcePrefix)
   } catch (err) {
     debug('get source metas error %s', err.message)
     throw err
   }
   debug('get %s objects in source', sourceMetas.length)
 
-  var errors = []
+  let errors = []
   for (let meta of sourceMetas) {
-    var errorName = yield checkAndUpload(source, target, meta)
+    var errorName = yield checkAndUpload(source, target, meta, options)
     errorName && errors.push(errorName)
   }
   debug('all objects updated!')
@@ -47,22 +51,30 @@ function * getAllObjects (source, prefix) {
   return metas
 }
 
-function * checkAndUpload (source, target, sourceMeta) {
+function * checkAndUpload (source, target, sourceMeta, options) {
   let targetInfo
   let name = sourceMeta.name
+  let targetName = name.replace(options.sourcePrefix, options.targetPrefix)
   try {
-    targetInfo = yield target.head(name)
+    targetInfo = yield target.head(targetName)
   } catch (err) {
     debug('get %s status %s, try to update', name, err.status || 'unknown')
   }
 
-  if (
-    targetInfo &&
-    targetInfo.res &&
-    targetInfo.res.headers &&
-    targetInfo.res.headers.etag === sourceMeta.etag) {
-    return debug('%s is not modified, no need to update', name)
+  if (!options.force) {
+    if (targetInfo && targetInfo.res) {
+      return debug('%s is exist, no need to update', name)
+    }
+  } else {
+    if (
+      targetInfo &&
+      targetInfo.res &&
+      targetInfo.res.headers &&
+      targetInfo.res.headers.etag === sourceMeta.etag) {
+      return debug('%s is not modified, no need to update', name)
+    }
   }
+
   try {
     let res = yield source.getStream(name)
     let stream = res.stream
@@ -71,7 +83,7 @@ function * checkAndUpload (source, target, sourceMeta) {
       throw new Error('can not get source object content length')
     }
 
-    yield target.put(name, stream, {
+    yield target.put(targetName, stream, {
       headers: {
         'Content-Length': length
       }
