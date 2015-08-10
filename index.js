@@ -58,12 +58,12 @@ function * checkAndUpload (source, target, sourceMeta, options) {
   try {
     targetInfo = yield target.head(targetName)
   } catch (err) {
-    debug('get %s status %s, try to update', name, err.status || 'unknown')
+    debug('get %s status %s, try to update', targetName, err.status || 'unknown')
   }
 
   if (!options.force) {
     if (targetInfo && targetInfo.res) {
-      return debug('%s is exist, no need to update', name)
+      return debug('%s is exist, no need to update', targetName)
     }
   } else {
     if (
