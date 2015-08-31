@@ -34,13 +34,24 @@ function * sync (source, target, options) {
 
 function * getAllObjects (source, prefix) {
   let metas = []
-  let res = yield source.list({
-    prefix: prefix,
-    delimiter: '/',
-    'max-keys': 1000
-  })
-  let objects = res.objects || []
-  let prefixes = res.prefixes || []
+  let objects = []
+  let prefixes = []
+  let res = null
+  let nextMarker = null
+  do {
+    res = yield source.list({
+      prefix: prefix,
+      delimiter: '/',
+      'max-keys': 1000,
+      marker: nextMarker
+    })
+    console.log(res)
+
+    objects = objects.concat(res.objects || [])
+    prefixes = prefixes.concat(res.prefixes || [])
+    nextMarker = res.nextMarker
+  } while (nextMarker)
+
   metas = metas.concat(res.objects || [])
   debug('parse %s got %s prefixes and %s objects', prefix, prefixes.length, objects.length)
 
