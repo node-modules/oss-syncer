@@ -1,7 +1,9 @@
 'use strict'
 
 const debug = require('debug')('oss-syncer')
+const gather = require('co-gather')
 const oss = require('ali-oss')
+const fs = require('fs')
 
 exports.sync = sync
 
@@ -15,21 +17,31 @@ function * sync (source, target, options) {
   options.force = options.force !== false
 
   let sourceMetas
-  try {
-    sourceMetas = yield getAllObjects(source, options.sourcePrefix)
-  } catch (err) {
-    debug('get source metas error %s', err.message)
-    throw err
+  if (options.metas) {
+    sourceMetas = require(options.metas)
+  } else {
+    try {
+      sourceMetas = yield getAllObjects(source, options.sourcePrefix)
+    } catch (err) {
+      debug('get source metas error %s', err.message)
+      throw err
+    }
+    debug('get %s objects in source', sourceMetas.length)
+    fs.writeFileSync('all_metas.json', JSON.stringify(sourceMetas))
+    debug('backup all_metas.json')
   }
-  debug('get %s objects in source', sourceMetas.length)
 
-  let errors = []
-  for (let meta of sourceMetas) {
-    var errorName = yield checkAndUpload(source, target, meta, options)
-    errorName && errors.push(errorName)
-  }
+  let tasks = sourceMetas.map(function (meta) {
+    return checkAndUpload(source, target, meta, options)
+  })
+
+  let errors = yield gather(tasks, 20)
   debug('all objects updated!')
-  return errors
+  return errors.map(function (res) {
+    return res.value
+  }).filter(function (v) {
+    return v
+  })
 }
 
 function * getAllObjects (source, prefix) {
@@ -45,7 +57,6 @@ function * getAllObjects (source, prefix) {
       'max-keys': 1000,
       marker: nextMarker
     })
-    console.log(res)
 
     objects = objects.concat(res.objects || [])
     prefixes = prefixes.concat(res.prefixes || [])
@@ -66,23 +77,26 @@ function * checkAndUpload (source, target, sourceMeta, options) {
   let targetInfo
   let name = sourceMeta.name
   let targetName = name.replace(options.sourcePrefix, options.targetPrefix)
-  try {
-    targetInfo = yield target.head(targetName)
-  } catch (err) {
-    debug('get %s status %s, try to update', targetName, err.status || 'unknown')
-  }
 
-  if (!options.force) {
-    if (targetInfo && targetInfo.res) {
-      return debug('%s is exist, no need to update', targetName)
+  if (!options.ignore) {
+    try {
+      targetInfo = yield target.head(targetName)
+    } catch (err) {
+      debug('get %s status %s, try to update', targetName, err.status || 'unknown')
     }
-  } else {
-    if (
-      targetInfo &&
-      targetInfo.res &&
-      targetInfo.res.headers &&
-      targetInfo.res.headers.etag === sourceMeta.etag) {
-      return debug('%s is not modified, no need to update', name)
+
+    if (!options.force) {
+      if (targetInfo && targetInfo.res) {
+        return debug('%s is exist, no need to update', targetName)
+      }
+    } else {
+      if (
+        targetInfo &&
+        targetInfo.res &&
+        targetInfo.res.headers &&
+        targetInfo.res.headers.etag === sourceMeta.etag) {
+        return debug('%s is not modified, no need to update', name)
+      }
     }
   }
 
