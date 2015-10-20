@@ -15,37 +15,11 @@ function * sync (source, target, options) {
   options.sourcePrefix = options.sourcePrefix || ''
   options.targetPrefix = options.targetPrefix || options.sourcePrefix
   options.force = options.force !== false
-
-  let sourceMetas
-  if (options.metas) {
-    sourceMetas = require(options.metas)
-  } else {
-    try {
-      sourceMetas = yield getAllObjects(source, options.sourcePrefix)
-    } catch (err) {
-      debug('get source metas error %s', err.message)
-      throw err
-    }
-    debug('get %s objects in source', sourceMetas.length)
-    fs.writeFileSync('all_metas.json', JSON.stringify(sourceMetas))
-    debug('backup all_metas.json')
-  }
-
-  let tasks = sourceMetas.map(function (meta) {
-    return checkAndUpload(source, target, meta, options)
-  })
-
-  let errors = yield gather(tasks, 20)
-  debug('all objects updated!')
-  return errors.map(function (res) {
-    return res.value
-  }).filter(function (v) {
-    return v
-  })
+  let prefix = options.sourcePrefix
+  yield _sync(source, target, options, prefix)
 }
 
-function * getAllObjects (source, prefix) {
-  let metas = []
+function * _sync (source, target, options, prefix) {
   let objects = []
   let prefixes = []
   let res = null
@@ -61,16 +35,20 @@ function * getAllObjects (source, prefix) {
     objects = objects.concat(res.objects || [])
     prefixes = prefixes.concat(res.prefixes || [])
     nextMarker = res.nextMarker
+    if (nextMarker) debug('get next marker %s', nextMarker)
   } while (nextMarker)
 
-  metas = metas.concat(res.objects || [])
   debug('parse %s got %s prefixes and %s objects', prefix, prefixes.length, objects.length)
 
+  let tasks = objects.map(function (meta) {
+    return checkAndUpload(source, target, meta, options)
+  })
+
+  yield gather(tasks, 20)
+
   for (let p of prefixes) {
-    let subMetas = yield getAllObjects(source, p)
-    metas = metas.concat(subMetas)
+    yield _sync(source, target, options, p)
   }
-  return metas
 }
 
 function * checkAndUpload (source, target, sourceMeta, options) {
