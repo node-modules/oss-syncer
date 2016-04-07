@@ -3,9 +3,12 @@
 const debug = require('debug')('oss-syncer')
 const gather = require('co-gather')
 const oss = require('ali-oss')
+const walk = require('./walk')
+const only = require('only')
 const fs = require('fs')
 
 exports.sync = sync
+exports.walk = walk
 
 function * sync (source, target, options) {
   source = oss(source)
@@ -15,40 +18,11 @@ function * sync (source, target, options) {
   options.sourcePrefix = options.sourcePrefix || ''
   options.targetPrefix = options.targetPrefix || options.sourcePrefix
   options.force = options.force !== false
+  options.keepHeaders = options.keepHeaders || []
   let prefix = options.sourcePrefix
-  yield _sync(source, target, options, prefix)
-}
-
-function * _sync (source, target, options, prefix) {
-  let objects = []
-  let prefixes = []
-  let res = null
-  let nextMarker = null
-  do {
-    res = yield source.list({
-      prefix: prefix,
-      delimiter: '/',
-      'max-keys': 1000,
-      marker: nextMarker
-    })
-
-    objects = objects.concat(res.objects || [])
-    prefixes = prefixes.concat(res.prefixes || [])
-    nextMarker = res.nextMarker
-    if (nextMarker) debug('get next marker %s', nextMarker)
-  } while (nextMarker)
-
-  debug('parse %s got %s prefixes and %s objects', prefix, prefixes.length, objects.length)
-
-  let tasks = objects.map(function (meta) {
-    return checkAndUpload(source, target, meta, options)
+  yield walk(source, target, options, function*(meta) {
+    return yield checkAndUpload(source, target, meta, options)
   })
-
-  yield gather(tasks, 20)
-
-  for (let p of prefixes) {
-    yield _sync(source, target, options, p)
-  }
 }
 
 function * checkAndUpload (source, target, sourceMeta, options) {
@@ -86,11 +60,11 @@ function * checkAndUpload (source, target, sourceMeta, options) {
       throw new Error('can not get source object content length')
     }
 
-    yield target.put(targetName, stream, {
-      headers: {
-        'Content-Length': length
-      }
-    })
+    const headers = Object.assign({
+      'content-length': length
+    }, only(res.res.headers, options.headers))
+
+    yield target.put(targetName, stream, { headers })
   } catch (err) {
     debug('sync %s error: %s', name, err.message)
     return name
