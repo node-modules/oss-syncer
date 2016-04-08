@@ -19,7 +19,7 @@ function * sync (source, target, options) {
   options.force = options.force !== false
   options.keepHeaders = options.keepHeaders || []
   let prefix = options.sourcePrefix
-  yield walk(source, target, options, function*(meta) {
+  yield walk(source, options.sourcePrefix, function*(meta) {
     return yield checkAndUpload(source, target, meta, options)
   })
 }
@@ -61,7 +61,7 @@ function * checkAndUpload (source, target, sourceMeta, options) {
 
     const headers = Object.assign({
       'content-length': length
-    }, only(res.res.headers, options.headers))
+    }, only(res.res.headers, options.keepHeaders))
 
     yield target.put(targetName, stream, { headers })
   } catch (err) {
