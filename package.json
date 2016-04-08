@@ -20,7 +20,8 @@
   "dependencies": {
     "ali-oss": "~3.0.2",
     "co-gather": "~0.0.1",
-    "debug": "~2.2.0"
+    "debug": "~2.2.0",
+    "only": "0.0.2"
   },
   "devDependencies": {
     "autod": "2",
