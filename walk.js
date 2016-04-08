@@ -1,6 +1,8 @@
 'use strict'
+const debug = require('debug')('oss-syncer:walk')
+const gather = require('co-gather')
 
-module.exports = function * (source, prefix, fn) {
+module.exports = function * walk(source, prefix, fn) {
   let objects = []
   let prefixes = []
   let res = null
@@ -28,6 +30,6 @@ module.exports = function * (source, prefix, fn) {
   yield gather(tasks, 20)
 
   for (let p of prefixes) {
-    yield _sync(source, p, fn)
+    yield walk(source, p, fn)
   }
 }

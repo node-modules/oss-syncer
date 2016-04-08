@@ -1,7 +1,6 @@
 'use strict'
 
 const debug = require('debug')('oss-syncer')
-const gather = require('co-gather')
 const oss = require('ali-oss')
 const walk = require('./walk')
 const only = require('only')

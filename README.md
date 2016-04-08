@@ -32,6 +32,29 @@ co(syncer.sync(sourceConfig, targetConfig, options)).catch(err => console.error(
 
 如果需要查看同步记录，请加 `DEBUG=oss-syncer` 环境变量运行。
 
+### walk
+
+`oss-syncer` 单独提供一个 `walk` 方法，可以遍历整个 oss bucket 来进行想要的操作。
+
+```js
+'use strict'
+const syncer = require('oss-syncer')
+const co = require('co')
+const oss = require('ali-oss')
+const config = require('./config')
+
+const source = oss(config.source)
+
+co(function * () {
+  let num = 0
+  yield syncer.walk(source, '', function *(meta) {
+    num++
+  })
+  console.log('total nums: %s', num)
+})
+.catch(err => console.error(err.stack))
+```
+
 ### License
 
 MIT
