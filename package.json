@@ -1,6 +1,6 @@
 {
   "name": "oss-syncer",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "synchronization all files from this bucket to another bucket",
   "main": "index.js",
   "scripts": {
