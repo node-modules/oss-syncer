@@ -18,7 +18,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "ali-oss": "~3.0.2",
+    "ali-oss": "^4.8.0",
     "co-gather": "~0.0.1",
     "debug": "~2.2.0",
     "only": "0.0.2"
