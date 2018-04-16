@@ -66,7 +66,7 @@ function * checkAndUpload (source, target, sourceMeta, options) {
     yield target.put(targetName, stream, { headers })
     if (options.acl) {
       res = yield source.getACL(name)
-      if (res.acl !== 'default') yield target.put(targetName, res.acl)
+      if (res.acl !== 'default') yield target.putACL(targetName, res.acl)
     }
   } catch (err) {
     debug('sync %s error: %s', name, err.message)
