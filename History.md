@@ -1,4 +1,10 @@
 
+3.1.1 / 2018-04-16
+==================
+
+**fixes**
+  * [[`0c6f362`](git@github.com:node-modules/oss-syncer/commit/0c6f362da14ec22a3b173953e343c65935ab84b0)] - fix: put => putACL (dead-horse <<dead_horse@qq.com>>)
+
 3.1.0 / 2018-04-16
 ==================
 
