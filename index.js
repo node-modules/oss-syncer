@@ -4,7 +4,6 @@ const debug = require('debug')('oss-syncer')
 const oss = require('ali-oss')
 const walk = require('./walk')
 const only = require('only')
-const fs = require('fs')
 
 exports.sync = sync
 exports.walk = walk
@@ -18,8 +17,7 @@ function * sync (source, target, options) {
   options.targetPrefix = options.targetPrefix || options.sourcePrefix
   options.force = options.force !== false
   options.keepHeaders = options.keepHeaders || []
-  let prefix = options.sourcePrefix
-  yield walk(source, options.sourcePrefix, function*(meta) {
+  yield walk(source, options.sourcePrefix, function * (meta) {
     return yield checkAndUpload(source, target, meta, options)
   })
 }
