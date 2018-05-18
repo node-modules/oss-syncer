@@ -1,4 +1,10 @@
 
+3.1.2 / 2018-05-18
+==================
+
+**fixes**
+  * [[`501efe6`](http://github.com/node-modules/oss-syncer/commit/501efe6bb70df6b4ee181ea49b816dc099820595)] - fix: catch source.list errors (#4) (fengmk2 <<fengmk2@gmail.com>>)
+
 3.1.1 / 2018-04-16
 ==================
 
