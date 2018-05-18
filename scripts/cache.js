@@ -17,8 +17,7 @@ co(function * () {
         }
       })
       debug('add cache header %s ok', name)
-    }
-    catch (err) {
+    } catch (err) {
       debug('add cache header %s error: %s', name, err.message)
       return name
     }

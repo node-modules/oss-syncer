@@ -21,6 +21,7 @@
     "ali-oss": "^4.8.0",
     "co-gather": "~0.0.1",
     "debug": "~2.6.7",
+    "mz-modules": "^2.1.0",
     "only": "0.0.2"
   },
   "devDependencies": {
@@ -32,7 +33,6 @@
     "standard": "~5.3.1"
   },
   "engine": {
-    "node": ">=0.12",
-    "iojs": ">=1"
+    "node": ">= 4.0.0"
   }
 }
