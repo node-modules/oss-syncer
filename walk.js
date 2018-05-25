@@ -26,7 +26,8 @@ module.exports = function * walk (source, prefix, fn) {
       objects = objects.concat(res.objects || [])
       prefixes = prefixes.concat(res.prefixes || [])
       nextMarker = res.nextMarker
-      debug('get next marker %s, %d objects, %d prefixs', nextMarker, objects.length, prefixes.length)
+      debug('prefix: %s => get next marker %s, %d objects, %d prefixs, %j ...',
+        prefix, nextMarker, objects.length, prefixes.length, (res.prefixes || []).slice(0, 10))
     }
 
     if (nextMarker) debug('get next marker %s', nextMarker)

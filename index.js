@@ -49,10 +49,11 @@ function * checkAndUpload (source, target, sourceMeta, options) {
     }
   }
 
+  let length;
   try {
     let res = yield source.getStream(name)
     let stream = res.stream
-    let length = res.res.headers['content-length']
+    length = res.res.headers['content-length']
     if (!length) {
       throw new Error('can not get source object content length')
     }
@@ -61,6 +62,7 @@ function * checkAndUpload (source, target, sourceMeta, options) {
       'content-length': length
     }, only(res.res.headers, options.keepHeaders))
 
+    debug('syncing %s => %s, headers: %j', name, targetName, headers);
     yield target.put(targetName, stream, { headers })
     if (options.acl) {
       res = yield source.getACL(name)
@@ -71,5 +73,5 @@ function * checkAndUpload (source, target, sourceMeta, options) {
     return name
   }
 
-  debug('sync %s ok', name)
+  debug('sync %s ok, length: %s', name, length)
 }
