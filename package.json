@@ -4,7 +4,9 @@
   "description": "synchronization all files from this bucket to another bucket",
   "main": "index.js",
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "keywords": [],
   "author": {
@@ -22,7 +24,8 @@
     "co-gather": "~0.0.1",
     "debug": "~2.6.7",
     "mz-modules": "^2.1.0",
-    "only": "0.0.2"
+    "only": "0.0.2",
+    "snyk": "^1.230.5"
   },
   "devDependencies": {
     "autod": "2",
@@ -34,5 +37,6 @@
   },
   "engine": {
     "node": ">= 4.0.0"
-  }
+  },
+  "snyk": true
 }
